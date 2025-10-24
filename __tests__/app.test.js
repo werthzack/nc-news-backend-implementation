@@ -56,11 +56,7 @@ describe("/api/articles", () => {
               expect(article).not.toHaveProperty("body");
             });
 
-            for (let i = 0; i < articles.length - 1; i++) {
-              const dateCurrent = new Date(articles[i].created_at);
-              const dateNext = new Date(articles[i + 1].created_at);
-              expect(dateCurrent >= dateNext).toBe(true);
-            }
+            expect(articles).toBeSortedBy("created_at", { descending: true });
           }
         });
     });
@@ -107,6 +103,31 @@ describe("/api/articles", () => {
           expect(errMsg).toBe(
             "Invalid article_id 'test' for input of type integer"
           );
+        });
+    });
+  });
+
+  describe("GET /api/article/:id/comments", () => {
+    test("should respond with status 200 and the requested comments when given a valid article", () => {
+      return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then(({ body }) => {
+          const comments = body.comments;
+          comments.forEach((comment) => {
+            expect(comment).toEqual(
+              expect.objectContaining({
+                comment_id: expect.any(Number),
+                author: expect.any(String),
+                article_id: 1,
+                body: expect.any(String),
+                created_at: expect.any(String),
+                votes: expect.any(Number),
+              })
+            );
+          });
+
+          expect(comments).toBeSortedBy("created_at", { descending: true });
         });
     });
   });

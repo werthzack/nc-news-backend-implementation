@@ -4,6 +4,7 @@ const {
   getAllArticles,
   getAllUsers,
   getArticleById,
+  getCommentsFromArticle,
 } = require("./controllers");
 const app = express();
 
@@ -12,7 +13,8 @@ app.use(express.json());
 app.get("/api/topics", getAllTopics);
 
 app.get("/api/articles", getAllArticles);
-app.get("/api/articles/:id", getArticleById);
+app.get("/api/articles/:article_id", getArticleById);
+app.get("/api/articles/:article_id/comments", getCommentsFromArticle);
 
 app.get("/api/users", getAllUsers);
 
