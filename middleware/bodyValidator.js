@@ -1,4 +1,4 @@
-exports.validateSchema = (schema, data) => {
+exports.validateBody = (schema, data) => {
   const errors = {};
 
   for (const [key, expected] of Object.entries(schema)) {

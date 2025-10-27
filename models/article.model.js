@@ -10,14 +10,12 @@ exports.selectAllArticles = () => {
         ORDER BY articles.created_at DESC`
     )
     .then(({ rows }) => {
-      return {
-        articles: rows.map(({ body, comment_count, ...article_data }) => {
-          return {
-            ...article_data,
-            comment_count: Number(comment_count),
-          };
-        }),
-      };
+      return rows.map(({ body, comment_count, ...article_data }) => {
+        return {
+          ...article_data,
+          comment_count: Number(comment_count),
+        };
+      });
     });
 };
 
@@ -31,7 +29,7 @@ exports.selectArticleById = (article_id) => {
           msg: "Article does not exist",
         });
       }
-      return { article: rows[0] };
+      return rows[0];
     });
 };
 
@@ -44,7 +42,7 @@ exports.selectCommentsByArticle = (article_id) => {
       [article_id]
     )
     .then(({ rows }) => {
-      return { comments: rows };
+      return rows;
     });
 };
 
@@ -57,6 +55,24 @@ exports.insertCommentOnArticle = (article_id, comment_data) => {
       [article_id, comment_data.username, comment_data.body]
     )
     .then(({ rows }) => {
-      return { comment: rows[0] };
+      return rows[0];
+    });
+};
+
+exports.updateArticleById = (article_id, votes) => {
+  return db
+    .query(
+      `
+    UPDATE articles
+    SET votes = votes + $1
+    WHERE article_id = $2
+    RETURNING *`,
+      [votes, article_id]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "Article does not exist" });
+      }
+      return rows[0];
     });
 };

@@ -1,14 +1,15 @@
-const { validateSchema } = require("../middleware/schemaValidator");
+const { validateBody } = require("../middleware/bodyValidator");
 const {
   selectAllArticles,
   selectArticleById,
   selectCommentsByArticle,
   insertCommentOnArticle,
+  updateArticleById,
 } = require("../models/article.model");
 
 exports.getAllArticles = (req, res) => {
   return selectAllArticles().then((articles) => {
-    res.send(articles);
+    res.send({ articles });
   });
 };
 
@@ -16,7 +17,7 @@ exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
   return selectArticleById(article_id)
     .then((article) => {
-      res.send(article);
+      res.send({ article });
     })
     .catch((err) => {
       if (err.code === "22P02") {
@@ -31,7 +32,7 @@ exports.getCommentsFromArticle = (req, res, next) => {
   return selectArticleById(article_id)
     .then(() => {
       return selectCommentsByArticle(article_id).then((comments) => {
-        res.send(comments);
+        res.send({ comments });
       });
     })
     .catch((err) => {
@@ -53,12 +54,12 @@ exports.postCommentAtArticle = (req, res, next) => {
   return selectArticleById(article_id)
     .then(() => {
       if (body !== undefined) {
-        const schema_check = validateSchema(schema, body);
+        const schema_check = validateBody(schema, body);
         if (!schema_check.valid) {
           res.status(400).send(schema_check.errors);
         } else {
           return insertCommentOnArticle(article_id, body).then((comment) => {
-            res.status(201).send(comment);
+            res.status(201).send({ comment });
           });
         }
       } else {
@@ -71,4 +72,29 @@ exports.postCommentAtArticle = (req, res, next) => {
       }
       next(err);
     });
+};
+
+exports.patchArticleById = (req, res, next) => {
+  const { article_id } = req.params;
+  const body = req.body;
+
+  if (!body || body.inc_votes === undefined) {
+    return res.status(400).send({ msg: "No body provided for PATCH request" });
+  }
+
+  const votes = body.inc_votes;
+  if (typeof votes === "number") {
+    return updateArticleById(article_id, votes)
+      .then((article) => {
+        res.status(200).send({ article });
+      })
+      .catch((err) => {
+        if (err.code === "22P02") {
+          err.msg = `Invalid article_id '${article_id}' for input of type integer`;
+        }
+        next(err);
+      });
+  } else {
+    res.status(400).send({ inc_votes: `Expected number, got ${typeof votes}` });
+  }
 };

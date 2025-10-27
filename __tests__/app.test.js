@@ -106,6 +106,92 @@ describe("/api/articles", () => {
         });
     });
   });
+
+  describe("PATCH /api/articles/:article_id", () => {
+    test("Should respond with status 200 and the updated article when given a valid body and a valid article_id", () => {
+      const validBody = { inc_votes: 30 };
+
+      let articleBefore;
+
+      return request(app)
+        .get("/api/articles/2")
+        .then(({ body }) => {
+          articleBefore = body.article;
+          return request(app)
+            .patch("/api/articles/2")
+            .send(validBody)
+            .expect(200);
+        })
+        .then(({ body: patchedBody }) => {
+          const updatedArticle = patchedBody.article;
+          expect(updatedArticle.votes).toBe(
+            articleBefore.votes + validBody.inc_votes
+          );
+
+          expect(updatedArticle).toEqual(
+            expect.objectContaining({
+              article_id: articleBefore.article_id,
+              title: articleBefore.title,
+              topic: articleBefore.topic,
+              author: articleBefore.author,
+              created_at: articleBefore.created_at,
+              votes: articleBefore.votes + validBody.inc_votes,
+            })
+          );
+        });
+    });
+
+    test("Should respond with status 404 when the requested article does not exist", () => {
+      return request(app)
+        .patch("/api/articles/234")
+        .send({ inc_votes: 3 })
+        .expect(404)
+        .then(({ body }) => {
+          console.log(body);
+          const errMsg = body.msg;
+          expect(errMsg).toBe("Article does not exist");
+        });
+    });
+
+    test("Should respond with status 400 when posting with an invalid article_id", () => {
+      return request(app)
+        .patch("/api/articles/article2")
+        .expect(400)
+        .send({ inc_votes: 23 })
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe(
+            "Invalid article_id 'article2' for input of type integer"
+          );
+        });
+    });
+
+    test("Should respond with status 400 when the post does not contain a body", () => {
+      return request(app)
+        .patch("/api/articles/3")
+        .expect(400)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe("No body provided for PATCH request");
+        });
+    });
+
+    describe("POST /api/articles/:article_id/comments - invalid field types", () => {
+      test("400 when inc_votes is not a number", () => {
+        return request(app)
+          .patch("/api/articles/2")
+          .send({ inc_votes: "3" })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body).toEqual(
+              expect.objectContaining({
+                inc_votes: "Expected number, got string",
+              })
+            );
+          });
+      });
+    });
+  });
 });
 
 describe("/api/users", () => {
@@ -194,7 +280,7 @@ describe("/api/articles/:article_id/comments", () => {
   });
 
   describe("POST /api/articles/:article_id/comments", () => {
-    test("Should respond with status 200 and the inserted comment when given a valid body and a valid article", () => {
+    test("Should respond with status 201 and the inserted comment when given a valid body and a valid article", () => {
       const validComment = {
         username: "butter_bridge",
         body: "Really nice article!!!",
