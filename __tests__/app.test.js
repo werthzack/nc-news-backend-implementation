@@ -62,7 +62,7 @@ describe("/api/articles", () => {
     });
   });
 
-  describe("GET /api/articles/:id", () => {
+  describe("GET /api/articles/:article_id", () => {
     test("should respond with status 200 and the requested article when given a valid article", () => {
       return request(app)
         .get("/api/articles/3")
@@ -106,31 +106,6 @@ describe("/api/articles", () => {
         });
     });
   });
-
-  describe("GET /api/article/:id/comments", () => {
-    test("should respond with status 200 and the requested comments when given a valid article", () => {
-      return request(app)
-        .get("/api/articles/1/comments")
-        .expect(200)
-        .then(({ body }) => {
-          const comments = body.comments;
-          comments.forEach((comment) => {
-            expect(comment).toEqual(
-              expect.objectContaining({
-                comment_id: expect.any(Number),
-                author: expect.any(String),
-                article_id: 1,
-                body: expect.any(String),
-                created_at: expect.any(String),
-                votes: expect.any(Number),
-              })
-            );
-          });
-
-          expect(comments).toBeSortedBy("created_at", { descending: true });
-        });
-    });
-  });
 });
 
 describe("/api/users", () => {
@@ -155,6 +130,171 @@ describe("/api/users", () => {
             });
           }
         });
+    });
+  });
+});
+
+describe("/api/articles/:article_id/comments", () => {
+  describe("GET /api/article/:article_id/comments", () => {
+    test("should respond with status 200 and the requested comments when given a valid article", () => {
+      return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then(({ body }) => {
+          const comments = body.comments;
+          comments.forEach((comment) => {
+            expect(comment).toEqual(
+              expect.objectContaining({
+                comment_id: expect.any(Number),
+                author: expect.any(String),
+                article_id: 1,
+                body: expect.any(String),
+                created_at: expect.any(String),
+                votes: expect.any(Number),
+              })
+            );
+          });
+
+          expect(comments).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+
+    test("should respond with status 200 and an empty array when given a valid article", () => {
+      return request(app)
+        .get("/api/articles/2/comments")
+        .expect(200)
+        .then(({ body }) => {
+          const comments = body.comments;
+          expect(comments).toBeInstanceOf(Array);
+          expect(comments.length).toBe(0);
+        });
+    });
+
+    test("Should respond with status 404 when the requested article does not exist", () => {
+      return request(app)
+        .get("/api/articles/234/comments")
+        .expect(404)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe("Article does not exist");
+        });
+    });
+
+    test("Should respond with status 400 when requesting with an invalid id", () => {
+      return request(app)
+        .get("/api/articles/try2/comments")
+        .expect(400)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe(
+            "Invalid article_id 'try2' for input of type integer"
+          );
+        });
+    });
+  });
+
+  describe("POST /api/articles/:article_id/comments", () => {
+    test("Should respond with status 200 and the inserted comment when given a valid body and a valid article", () => {
+      const validComment = {
+        username: "butter_bridge",
+        body: "Really nice article!!!",
+      };
+      return request(app)
+        .post("/api/articles/2/comments")
+        .send(validComment)
+        .expect(201)
+        .then(({ body }) => {
+          const comment = body.comment;
+          expect(comment).toEqual(
+            expect.objectContaining({
+              author: validComment.username,
+              body: validComment.body,
+              article_id: 2,
+              comment_id: expect.any(Number),
+              votes: 0,
+              created_at: expect.any(String),
+            })
+          );
+
+          expect(Date.parse(comment.created_at)).not.toBe(NaN);
+        });
+    });
+
+    test("Should respond with status 404 when the requested article does not exist", () => {
+      return request(app)
+        .post("/api/articles/234/comments")
+        .expect(404)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe("Article does not exist");
+        });
+    });
+
+    test("Should respond with status 400 when posting with an invalid article_id", () => {
+      return request(app)
+        .post("/api/articles/article2/comments")
+        .expect(400)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe(
+            "Invalid article_id 'article2' for input of type integer"
+          );
+        });
+    });
+
+    test("Should respond with status 400 when the post does not contain a body", () => {
+      return request(app)
+        .post("/api/articles/3/comments")
+        .expect(400)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe("No body provided for POST request");
+        });
+    });
+
+    describe("POST /api/articles/:article_id/comments - invalid field types", () => {
+      test("400 when username is not a string", () => {
+        return request(app)
+          .post("/api/articles/2/comments")
+          .send({ username: 123, body: "Valid comment" })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body).toEqual(
+              expect.objectContaining({
+                username: "Expected string, got number",
+              })
+            );
+          });
+      });
+
+      test("400 when body is not a string", () => {
+        return request(app)
+          .post("/api/articles/2/comments")
+          .send({ username: "user1", body: [] })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body).toEqual(
+              expect.objectContaining({
+                body: "Expected string, got object",
+              })
+            );
+          });
+      });
+
+      test("400 when both fields are invalid", () => {
+        return request(app)
+          .post("/api/articles/2/comments")
+          .send({ username: 4, body: [] })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body).toEqual(
+              expect.objectContaining({
+                username: "Expected string, got number",
+                body: "Expected string, got object",
+              })
+            );
+          });
+      });
     });
   });
 });

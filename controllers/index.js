@@ -2,6 +2,7 @@ const {
   getAllArticles,
   getArticleById,
   getCommentsFromArticle,
+  postCommentAtArticle,
 } = require("./article.controller.js");
 const { getAllTopics } = require("./topic.controller.js");
 const { getAllUsers } = require("./user.controller.js");
@@ -12,4 +13,5 @@ module.exports = {
   getAllUsers,
   getArticleById,
   getCommentsFromArticle,
+  postCommentAtArticle,
 };

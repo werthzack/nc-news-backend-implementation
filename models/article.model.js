@@ -37,25 +37,26 @@ exports.selectArticleById = (article_id) => {
 
 exports.selectCommentsByArticle = (article_id) => {
   return db
-    .query(`SELECT * FROM articles WHERE article_id = $1`, [article_id])
-    .then(({ rows }) => {
-      if (!rows.length) {
-        return Promise.reject({
-          status: 404,
-          msg: "Article does not exist",
-        });
-      }
-    })
-    .then(() => {
-      return db
-        .query(
-          `SELECT * FROM comments 
+    .query(
+      `SELECT * FROM comments 
             WHERE article_id = $1
             ORDER BY created_at DESC`,
-          [article_id]
-        )
-        .then(({ rows }) => {
-          return { comments: rows };
-        });
+      [article_id]
+    )
+    .then(({ rows }) => {
+      return { comments: rows };
+    });
+};
+
+exports.insertCommentOnArticle = (article_id, comment_data) => {
+  return db
+    .query(
+      `INSERT INTO comments (article_id, author, body)
+        VALUES ($1, $2, $3)
+        RETURNING *`,
+      [article_id, comment_data.username, comment_data.body]
+    )
+    .then(({ rows }) => {
+      return { comment: rows[0] };
     });
 };
