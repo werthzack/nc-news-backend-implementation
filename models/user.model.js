@@ -8,6 +8,6 @@ exports.selectAllUsers = () => {
         `
     )
     .then(({ rows }) => {
-      return { users: rows };
+      return rows;
     });
 };

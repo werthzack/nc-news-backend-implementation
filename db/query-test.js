@@ -5,7 +5,6 @@ db.query(
     SELECT * FROM users`
 )
   .then(({ rows }) => {
-    //   console.log(rows);
     return db.query(
       `
     SELECT * FROM articles
@@ -14,7 +13,6 @@ db.query(
     );
   })
   .then(({ rows }) => {
-    // console.log(rows, rows.length);
     return db.query(`
         SELECT * FROM comments
         WHERE votes = 0`);

@@ -5,6 +5,7 @@ const {
   selectCommentsByArticle,
   insertCommentOnArticle,
   updateArticleById,
+  deleteComment,
 } = require("../models/article.model");
 
 exports.getAllArticles = (req, res) => {
@@ -97,4 +98,19 @@ exports.patchArticleById = (req, res, next) => {
   } else {
     res.status(400).send({ inc_votes: `Expected number, got ${typeof votes}` });
   }
+};
+
+exports.removeComment = (req, res, next) => {
+  const { comment_id } = req.params;
+
+  return deleteComment(comment_id)
+    .then((deletedComment) => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      if (err.code === "22P02") {
+        err.msg = `Invalid comment_id '${comment_id}' for input of type integer`;
+      }
+      next(err);
+    });
 };

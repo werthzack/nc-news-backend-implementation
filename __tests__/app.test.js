@@ -147,7 +147,6 @@ describe("/api/articles", () => {
         .send({ inc_votes: 3 })
         .expect(404)
         .then(({ body }) => {
-          console.log(body);
           const errMsg = body.msg;
           expect(errMsg).toBe("Article does not exist");
         });
@@ -381,6 +380,36 @@ describe("/api/articles/:article_id/comments", () => {
             );
           });
       });
+    });
+  });
+});
+
+describe("/api/comments", () => {
+  describe("DELETE /api/comments/:comment_id", () => {
+    test("Responds with status 204 and no content when a comment is deleted", () => {
+      return request(app).delete("/api/comments/3").expect(204);
+    });
+
+    test("Responds with status 404 when the comment_id does not exist", () => {
+      return request(app)
+        .delete("/api/comments/3405")
+        .expect(404)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe("Comment does not exist");
+        });
+    });
+
+    test("Responds with status 400 when given an invalid comment_id", () => {
+      return request(app)
+        .delete("/api/comments/comment1")
+        .expect(400)
+        .then(({ body }) => {
+          const errMsg = body.msg;
+          expect(errMsg).toBe(
+            `Invalid comment_id 'comment1' for input of type integer`
+          );
+        });
     });
   });
 });
