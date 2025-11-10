@@ -9,7 +9,8 @@ const {
 } = require("../models/article.model");
 
 exports.getAllArticles = (req, res) => {
-  return selectAllArticles().then((articles) => {
+  const { sort_by = "created_at", order = "desc" } = req.query || {};
+  return selectAllArticles(sort_by, order).then((articles) => {
     res.send({ articles });
   });
 };

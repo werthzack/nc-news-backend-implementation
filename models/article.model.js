@@ -1,14 +1,45 @@
 const db = require("../db/connection");
 
-exports.selectAllArticles = () => {
+exports.selectAllArticles = (sort_by = "created_at", order = "desc") => {
   return db
     .query(
-      `SELECT articles.*, COUNT(comments.comment_id) AS comment_count
+      `
+        SELECT *
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_NAME='articles'
+        `
+    )
+    .then(({ rows }) => {
+      const columns = rows.map((row) => {
+        return row.column_name;
+      });
+      return columns;
+    })
+    .then((columns) => {
+      if (!columns.includes(sort_by)) {
+        return Promise.reject({
+          status: 400,
+          msg: "Invalid key sort_by: column does not exist",
+        });
+      }
+
+      if (!["asc", "desc"].includes(order)) {
+        return Promise.reject({
+          status: 400,
+          msg: "Invalid key order: must be asc or desc",
+        });
+      }
+
+      const query_str = `
+        SELECT articles.* , COUNT(comments.comment_id) AS comment_count
         FROM articles
         LEFT JOIN comments ON articles.article_id = comments.article_id
         GROUP BY articles.article_id
-        ORDER BY articles.created_at DESC`
-    )
+        ORDER BY ${sort_by} ${order} 
+      `;
+
+      return db.query(query_str);
+    })
     .then(({ rows }) => {
       return rows.map(({ body, comment_count, ...article_data }) => {
         return {
@@ -17,6 +48,24 @@ exports.selectAllArticles = () => {
         };
       });
     });
+  // let query_str = `SELECT articles.* , COUNT(comments.comment_id) AS comment_count
+  //       FROM articles
+  //       LEFT JOIN comments ON articles.article_id = comments.article_id
+  //       GROUP BY articles.article_id
+  //       ORDER BY $1`;
+
+  // if (order !== "desc" && order === "asc") {
+  //   query_str += " ASC";
+  // } else query_str += " DESC";
+
+  // return db.query(query_str, [sort_by]).then(({ rows }) => {
+  //   return rows.map(({ body, comment_count, ...article_data }) => {
+  //     return {
+  //       ...article_data,
+  //       comment_count: Number(comment_count),
+  //     };
+  //   });
+  // });
 };
 
 exports.selectArticleById = (article_id) => {

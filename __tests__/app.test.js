@@ -60,6 +60,63 @@ describe("/api/articles", () => {
           }
         });
     });
+
+    test("should sort articles by a valid column when sort_by query is provided", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ sort_by: "topic", order: "desc" })
+        .expect(200)
+        .then(({ body }) => {
+          const { articles } = body;
+          expect(articles).toBeSortedBy("topic", { descending: true });
+        });
+    });
+
+    test("should order articles in ascending order when order=asc is provided", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ order: "asc" })
+        .expect(200)
+        .then(({ body }) => {
+          const { articles } = body;
+          expect(articles).toBeSortedBy("created_at", { descending: false });
+        });
+    });
+
+    test("should default to descending order when order query is not provided", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ sort_by: "title" })
+        .expect(200)
+        .then(({ body }) => {
+          const { articles } = body;
+          expect(articles).toBeSortedBy("title", { descending: true });
+        });
+    });
+
+    describe("should respond with status 400 when sort_by is an invalid column or order is invalid", () => {
+      test("when sort_by is an invalid column", () => {
+        return request(app)
+          .get("/api/articles")
+          .query({ sort_by: "fans" })
+          .expect(400)
+          .then(({ body }) => {
+            const errMsg = body.msg;
+            expect(errMsg).toBe("Invalid key sort_by: column does not exist");
+          });
+      });
+
+      test("when order is invalid", () => {
+        return request(app)
+          .get("/api/articles")
+          .query({ order: "up" })
+          .expect(400)
+          .then(({ body }) => {
+            const errMsg = body.msg;
+            expect(errMsg).toBe("Invalid key order: must be asc or desc");
+          });
+      });
+    });
   });
 
   describe("GET /api/articles/:article_id", () => {
