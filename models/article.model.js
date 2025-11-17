@@ -1,72 +1,121 @@
 const db = require("../db/connection");
 
-exports.selectAllArticles = (sort_by = "created_at", order = "desc") => {
-  return db
-    .query(
-      `
-        SELECT *
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_NAME='articles'
-        `
-    )
-    .then(({ rows }) => {
-      const columns = rows.map((row) => {
-        return row.column_name;
-      });
-      return columns;
-    })
-    .then((columns) => {
-      if (!columns.includes(sort_by)) {
-        return Promise.reject({
-          status: 400,
-          msg: "Invalid key sort_by: column does not exist",
-        });
-      }
+exports.selectAllArticles = (
+  sort_by = "created_at",
+  order = "desc",
+  topic = "all"
+) => {
+  const validSortColumns = [
+    "article_id",
+    "title",
+    "topic",
+    "author",
+    "created_at",
+    "votes",
+    "comment_count",
+  ];
 
-      if (!["asc", "desc"].includes(order)) {
-        return Promise.reject({
-          status: 400,
-          msg: "Invalid key order: must be asc or desc",
-        });
-      }
+  if (!validSortColumns.includes(sort_by)) {
+    return Promise.reject({
+      status: 400,
+      msg: "Invalid key sort_by: column does not exist",
+    });
+  }
 
-      const query_str = `
-        SELECT articles.* , COUNT(comments.comment_id) AS comment_count
+  if (!["asc", "desc"].includes(order)) {
+    return Promise.reject({
+      status: 400,
+      msg: "Invalid key order: must be asc or desc",
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    if (topic === "all") {
+      resolve(true);
+    } else {
+      return db
+        .query(`SELECT * FROM topics WHERE slug = $1;`, [topic])
+        .then(({ rows }) => {
+          if (rows.length === 0) {
+            reject({
+              status: 404,
+              msg: `Topic '${topic}' does not exist`,
+            });
+          }
+          resolve(true);
+        });
+    }
+  })
+    .then((topicValidated) => {
+      let queryStr = `
+        SELECT articles.*, COUNT(comments.comment_id)::INT AS comment_count
         FROM articles
         LEFT JOIN comments ON articles.article_id = comments.article_id
-        GROUP BY articles.article_id
-        ORDER BY ${sort_by} ${order} 
       `;
 
-      return db.query(query_str);
+      const queryValues = [];
+
+      if (topicValidated) {
+        queryStr += ` WHERE topic = $1`;
+        queryValues.push(topic);
+      }
+
+      queryStr += `
+        GROUP BY articles.article_id
+        ORDER BY ${sort_by} ${order};
+      `;
+
+      return db.query(queryStr, queryValues);
     })
     .then(({ rows }) => {
-      return rows.map(({ body, comment_count, ...article_data }) => {
-        return {
-          ...article_data,
-          comment_count: Number(comment_count),
-        };
-      });
+      return rows.map(({ body, comment_count, ...article }) => ({
+        ...article,
+        comment_count: Number(comment_count),
+      }));
     });
-  // let query_str = `SELECT articles.* , COUNT(comments.comment_id) AS comment_count
-  //       FROM articles
-  //       LEFT JOIN comments ON articles.article_id = comments.article_id
-  //       GROUP BY articles.article_id
-  //       ORDER BY $1`;
-
-  // if (order !== "desc" && order === "asc") {
-  //   query_str += " ASC";
-  // } else query_str += " DESC";
-
-  // return db.query(query_str, [sort_by]).then(({ rows }) => {
-  //   return rows.map(({ body, comment_count, ...article_data }) => {
-  //     return {
-  //       ...article_data,
-  //       comment_count: Number(comment_count),
-  //     };
-  //   });
-  // });
 };
+
+//   const topicCheck = topic
+//     ? db
+//         .query(`SELECT * FROM topics WHERE slug = $1;`, [topic])
+//         .then(({ rows }) => {
+//           if (rows.length === 0) {
+//             return Promise.reject({
+//               status: 404,
+//               msg: `Topic '${topic}' does not exist`,
+//             });
+//           }
+//         })
+
+//   return topicCheck
+//     .then(() => {
+//       let queryStr = `
+//         SELECT articles.*, COUNT(comments.comment_id)::INT AS comment_count
+//         FROM articles
+//         LEFT JOIN comments ON articles.article_id = comments.article_id
+//       `;
+
+//       const queryValues = [];
+
+//       if (topic) {
+//         queryStr += ` WHERE topic = $1`;
+//         queryValues.push(topic);
+//       }
+
+//       queryStr += `
+//         GROUP BY articles.article_id
+//         ORDER BY ${sort_by} ${order};
+//       `;
+
+//       return db.query(queryStr, queryValues);
+//     })
+//     .then(({ rows }) => {
+//       return rows.map(({ body, comment_count, ...article }) => ({
+//         ...article,
+//         comment_count: Number(comment_count),
+//       }));
+//     });
+// };
 
 exports.selectArticleById = (article_id) => {
   return db

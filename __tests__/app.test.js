@@ -117,6 +117,42 @@ describe("/api/articles", () => {
           });
       });
     });
+
+    describe("GET /api/articles - topic query feature", () => {
+      test("should filter articles by topic when topic query is provided", () => {
+        return request(app)
+          .get("/api/articles")
+          .query({ topic: "cats" })
+          .expect(200)
+          .then(({ body }) => {
+            const { articles } = body;
+            expect(Array.isArray(articles)).toBe(true);
+            articles.forEach((article) => {
+              expect(article.topic).toBe("cats");
+            });
+          });
+      });
+
+      test("should return all articles when topic query is omitted", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body }) => {
+            const { articles } = body;
+            expect(Array.isArray(articles)).toBe(true);
+          });
+      });
+
+      test("should return 404 when topic does not exist", () => {
+        return request(app)
+          .get("/api/articles")
+          .query({ topic: "nonexistent" })
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).toBe("Topic 'nonexistent' does not exist");
+          });
+      });
+    });
   });
 
   describe("GET /api/articles/:article_id", () => {
