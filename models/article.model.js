@@ -31,7 +31,7 @@ exports.selectAllArticles = (
 
   return new Promise((resolve, reject) => {
     if (topic === "all") {
-      resolve(true);
+      resolve(false);
     } else {
       return db
         .query(`SELECT * FROM topics WHERE slug = $1;`, [topic])
@@ -74,48 +74,6 @@ exports.selectAllArticles = (
       }));
     });
 };
-
-//   const topicCheck = topic
-//     ? db
-//         .query(`SELECT * FROM topics WHERE slug = $1;`, [topic])
-//         .then(({ rows }) => {
-//           if (rows.length === 0) {
-//             return Promise.reject({
-//               status: 404,
-//               msg: `Topic '${topic}' does not exist`,
-//             });
-//           }
-//         })
-
-//   return topicCheck
-//     .then(() => {
-//       let queryStr = `
-//         SELECT articles.*, COUNT(comments.comment_id)::INT AS comment_count
-//         FROM articles
-//         LEFT JOIN comments ON articles.article_id = comments.article_id
-//       `;
-
-//       const queryValues = [];
-
-//       if (topic) {
-//         queryStr += ` WHERE topic = $1`;
-//         queryValues.push(topic);
-//       }
-
-//       queryStr += `
-//         GROUP BY articles.article_id
-//         ORDER BY ${sort_by} ${order};
-//       `;
-
-//       return db.query(queryStr, queryValues);
-//     })
-//     .then(({ rows }) => {
-//       return rows.map(({ body, comment_count, ...article }) => ({
-//         ...article,
-//         comment_count: Number(comment_count),
-//       }));
-//     });
-// };
 
 exports.selectArticleById = (article_id) => {
   return db

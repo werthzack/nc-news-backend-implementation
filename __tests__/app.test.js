@@ -43,6 +43,7 @@ describe("/api/articles", () => {
         .then(({ body }) => {
           const articles = body.articles;
           expect(Array.isArray(articles)).toBe(true);
+          console.log(articles.length);
           if (articles.length > 0) {
             articles.forEach((article) => {
               expect(article).toHaveProperty("article_id");
