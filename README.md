@@ -1,35 +1,108 @@
-# NC News Seeding
+# 📰 NC News API
 
-## 🛠️ Environment Setup
+### _(NC News Backend Project)_
 
-This project uses Node.js and PostgreSQL, with environment variables managed via .env files. These files are ignored by Git and must be created manually.
+NC Mews API is a RESTful backend service built as part of the **NC News** project.  
+It provides endpoints for managing articles, topics, users, and comments, mimicking the behaviour of a real-world news platform API.
 
-## 📁 Required .env Files
+The project focuses on backend fundamentals such as database design, RESTful routing, error handling, and test-driven development.
 
-Create the following files in the root of the project:
+---
 
-.env.development — for local development
+## 🧰 Tech Used
 
-.env.test — for running tests with Jest
+- **Node.js**
+- **Express**
+- **PostgreSQL**
+- **node-postgres (pg)**
+- **pg-format**
+- **Jest**
+- **Supertest**
+- **dotenv**
 
-Each file should point to a separate PostgreSQL database
+---
 
-## 🗃️ Database Setup
+## ✨ Features
 
-After setting up your .env files, you can create both local databases using the following command:
+- RESTful API following standard CRUD conventions
+- Articles endpoint with:
+  - sorting
+  - filtering
+  - comment counts
+- Full comment system:
+  - create
+  - delete
+  - retrieve by article
+- Topic and user data retrieval
+- Centralised error handling for:
+  - invalid routes
+  - invalid IDs
+  - database errors
+- Comprehensive test suite using Jest and Supertest
+- Public API documentation served at `/docs`
 
-```bash
-npm run setup-dbs
-```
+---
 
-This script will execute a SQL file that creates the necessary databases (both development and test).
+## 🛠️ The Process
 
-## 🧪 Running Tests with Jest
+This project was built incrementally using a **test-driven development (TDD)** approach.
 
-The test suite uses Jest
+The development process included:
 
-```bash
-npm test
-```
+1. Designing the database schema and relationships
+2. Writing failing tests for each endpoint
+3. Implementing models and controllers to satisfy test requirements
+4. Adding robust error handling and edge-case coverage
+5. Refactoring for readability and maintainability
+6. Documenting the API with semantic HTML for developer usability
 
-> Make sure you've run **npm run setup-dbs** beforehand so the test database is available.
+The API structure follows REST principles, with endpoints grouped by resource (articles, comments, users, topics).
+
+---
+
+## 📘 What I Learned
+
+Through this project, I gained hands-on experience with:
+
+- Building a REST API using Express
+- Writing and structuring SQL queries for relational data
+- Using PostgreSQL error codes to handle invalid input
+- Implementing test-driven development in a backend environment
+- Structuring an Express application using MVC principles
+- Writing clear, developer-focused API documentation
+- Managing environment variables securely using `.env` files
+
+This project strengthened my understanding of backend architecture and how APIs are designed for real-world use.
+
+---
+
+## 🚀 How to Run the Project
+
+Setup and usage instructions are documented in detail here:
+
+👉 **[Project Setup Guide](./SETUP.md)**
+
+This includes:
+
+- cloning the repository
+- installing dependencies
+- creating `.env` files
+- setting up and seeding the database
+- running the server
+- running tests
+
+---
+
+## 🌐 Hosted Version
+
+🔗 **Live API:** _<your hosted link here>_  
+🔗 **API Documentation:** `/docs`
+
+---
+
+## 🧱 Minimum Requirements
+
+| Tool           | Version |
+| -------------- | ------- |
+| **Node.js**    | v18+    |
+| **PostgreSQL** | 12+     |
