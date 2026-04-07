@@ -13,7 +13,13 @@ const cors = require("cors");
 const app = express();
 
 app.use(cors());
-app.use(express.static("public"));
+app.get("/", (req, res) => {
+  res.redirect("/docs");
+});
+app.get("/api", (req, res) => {
+  res.redirect("/docs");
+});
+app.use("/docs", express.static("public"));
 app.use(express.json());
 
 app.get("/api/topics", getAllTopics);

@@ -2,65 +2,238 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Article API</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Article API Documentation</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <header>
+
+  <div class="layout">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <h2>API Reference</h2>
+
+      <nav>
+
+        <!-- Topics -->
+        <h3 class="nav-section-title">Topics</h3>
+        <a href="#get-topics">Overview</a>
+
+        <!-- Articles -->
+        <h3 class="nav-section-title">Articles</h3>
+        <a href="#get-articles">List Articles</a>
+        <a href="#get-articles-queries">Filter & Sort</a>
+        <a href="#get-article-by-id">Retrieve Article</a>
+        <a href="#get-article-comment-count">Comment Count</a>
+        <a href="#get-article-comments">List Comments</a>
+        <a href="#post-article-comment">Create Comment</a>
+        <a href="#patch-article">Update Article</a>
+
+        <!-- Comments -->
+        <h3 class="nav-section-title">Comments</h3>
+        <a href="#delete-comment">Delete Comment</a>
+
+        <!-- Users -->
+        <h3 class="nav-section-title">Users</h3>
+        <a href="#get-users">List Users</a>
+
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+
+      <header id="intro">
         <h1>Article API Documentation</h1>
-        <p>A simple guide to using the Article API.</p>
-        <nav>
-            <ul>
-                <li><a href="#get-topics">GET /api/topics</a></li>
-                <li><a href="#get-article-by-id">GET /api/articles/:article_id</a></li>
-                <li><a href="#get-articles">GET /api/articles</a></li>
-                <li><a href="#get-article-comments">GET /api/articles/:article_id/comments</a></li>
-                <li><a href="#post-article-comment">POST /api/articles/:article_id/comments</a></li>
-                <li><a href="#patch-article">PATCH /api/articles/:article_id</a></li>
-                <li><a href="#delete-comment">DELETE /api/comments/:comment_id</a></li>
-                <li><a href="#get-users">GET /api/users</a></li>
-                <li><a href="#get-articles-queries">GET /api/articles (queries)</a></li>
-                <li><a href="#get-article-comment-count">GET /api/articles/:article_id (comment count)</a></li>
+        <p>
+          Welcome to the Article API reference. This guide provides detailed explanations, request
+          formats, query parameters, and example responses for each available endpoint.
+          The API is organized by resource: <strong>Topics</strong>, <strong>Articles</strong>,
+          <strong>Comments</strong>, and <strong>Users</strong>.
+        </p>
+      </header>
 
-            </ul>
-        </nav>
-    </header>
+      <section id="get-topics">
+        <h2>Topics &mdash; GET /api/topics</h2>
+        <p>Retrieve a list of all available discussion topics. Topics categorize articles across the platform.
+        </p>
 
-    <main>
-        <section id="get-topics">
-            <h2>GET /api/topics</h2>
-            <p>Retrieves a list of all topics in the database.</p>
+        <h3>Example Request</h3>
+        <pre><code>GET /api/topics</code></pre>
 
-            <h3>Example Request</h3>
-            <pre>GET http://localhost:4090/api/topics</pre>
+        <h3>Example Response</h3>
+        <pre><code>{
+  "topics": [
+    { "slug": "sports", "description": "Covers global sporting news" },
+    { "slug": "cooking", "description": "Food, recipes, and culinary tips" }
+  ]
+}</code></pre>
+      </section>
 
-            <h3>Example Response</h3>
-            <pre>
-{
-"topics": [
-    { "id": 1, "slug": "Sports", "description": "Covers all sports from football to baseball" },
-    { "id": 2, "slug": "Cooking", "description": "Hey good looking, what you got cooking?" }
-]
-}
-            </pre>
-        </section>
+      <section id="get-articles">
+        <h2>Articles &mdash; List Articles</h2>
+        <p>Retrieve all articles, sorted by creation date by default. Each article includes metadata such as
+          author, topic, votes, and comment count.</p>
 
+        <h3>Example Request</h3>
+        <pre><code>GET /api/articles</code></pre>
 
-        <section id="#get-articles">
-            <h2>GET /api/articles</h2>
-            <p>Retrieves a list of all articles in the database.</p>
+        <h3>Example Response</h3>
+        <pre><code>{
+  "articles": [
+    {
+      "article_id": 1,
+      "title": "First Article",
+      "topic": "sports",
+      "author": "john",
+      "votes": 10,
+      "comment_count": 4
+    }
+  ]
+}</code></pre>
+      </section>
 
-            <h3>Example Request</h3>
-            <pre>GET http://localhost:4090/api/topics</pre>
+      <section id="get-articles-queries">
+        <h2>Articles &mdash; Filter & Sort</h2>
+        <p>You can filter the article list using the following query parameters:</p>
 
-            <h3>Example Response</h3>
-            <pre>
+        <ul>
+          <li><strong>topic</strong> &mdash; Filter by topic (e.g., <code>?topic=sports</code>)</li>
+          <li><strong>sort_by</strong> &mdash; Sort by any valid column (e.g., <code>?sort_by=votes</code>)
+          </li>
+          <li><strong>order</strong> &mdash; asc or desc (e.g., <code>?order=asc</code>)</li>
+        </ul>
 
-            </pre>
+        <h3>Example Request</h3>
+        <pre><code>GET /api/articles?topic=sports&sort_by=votes&order=desc</code></pre>
+      </section>
 
-        </section>
+      <section id="get-article-by-id">
+        <h2>Articles &mdash; Retrieve Article</h2>
+        <p>Fetch a single article using its unique <code>article_id</code>. The response includes the full
+          article body.</p>
+
+        <h3>Example Request</h3>
+        <pre><code>GET /api/articles/1</code></pre>
+
+        <h3>Example Response</h3>
+        <pre><code>{
+  "article": {
+    "article_id": 1,
+    "title": "First Article",
+    "topic": "sports",
+    "author": "john",
+    "body": "This is an article about sports.",
+    "votes": 10,
+    "created_at": "2024-01-01"
+  }
+}</code></pre>
+      </section>
+
+      <section id="get-article-comment-count">
+        <h2>Articles &mdash; Comment Count</h2>
+        <p>
+          Retrieve an article along with the total number of comments made on it.
+          Useful for displaying article statistics.
+        </p>
+
+        <h3>Example Response</h3>
+        <pre><code>{
+  "article": {
+    "article_id": 1,
+    "title": "First Article",
+    "comment_count": 4
+  }
+}</code></pre>
+      </section>
+
+      <section id="get-article-comments">
+        <h2>Articles &mdash; List Comments</h2>
+        <p>Retrieve all comments belonging to a specific article.</p>
+
+        <h3>Example Response</h3>
+        <pre><code>{
+  "comments": [
+    { "comment_id": 1, "author": "jane", "body": "Great article!" },
+    { "comment_id": 2, "author": "mark", "body": "Very informative." }
+  ]
+}</code></pre>
+      </section>
+
+      <section id="post-article-comment">
+        <h2>Articles &mdash; Create Comment</h2>
+        <p>Add a new comment to an article by providing an author and comment body.</p>
+
+        <h3>Request Body</h3>
+        <pre><code>{
+  "author": "jane_doe",
+  "body": "Loved this article!"
+}</code></pre>
+
+        <h3>Example Response</h3>
+        <pre><code>{
+  "comment": {
+    "comment_id": 3,
+    "author": "jane_doe",
+    "body": "Loved this article!",
+    "created_at": "2024-03-01"
+  }
+}</code></pre>
+      </section>
+
+      <section id="patch-article">
+        <h2>Articles &mdash; Update Article</h2>
+        <p>Update the vote count of an article. Pass a positive or negative integer to increase or decrease
+          votes.</p>
+
+        <h3>Request Body</h3>
+        <pre><code>{
+  "inc_votes": 3
+}</code></pre>
+
+        <h3>Example Response</h3>
+        <pre><code>{
+  "article": {
+    "article_id": 1,
+    "votes": 13
+  }
+}</code></pre>
+      </section>
+
+      <section id="delete-comment">
+        <h2>Comments &mdash; Delete Comment</h2>
+        <p>Delete a specific comment using its <code>comment_id</code>. Returns no content.</p>
+
+        <h3>Example Request</h3>
+        <pre><code>DELETE /api/comments/5</code></pre>
+
+        <h3>Response</h3>
+        <pre><code>Status: 204 No Content</code></pre>
+      </section>
+
+      <section id="get-users">
+        <h2>Users &mdash; List Users</h2>
+        <p>Retrieve all registered users. Users may appear as authors of articles or comments.</p>
+
+        <h3>Example Response</h3>
+        <pre><code>{
+  "users": [
+    { "username": "john", "name": "John Doe" },
+    { "username": "jane", "name": "Jane Smith" }
+  ]
+}</code></pre>
+      </section>
+
+      <footer>
+        <p>© 2025 Article API &mdash; Documentation for development use.</p>
+      </footer>
+
+    </main>
+
+  </div>
 
 </body>
 
