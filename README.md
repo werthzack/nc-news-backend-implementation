@@ -95,7 +95,7 @@ This includes:
 
 ## 🌐 Hosted Version
 
-🔗 **Live API:** _<your hosted link here>_  
+🔗 **Live API:** _<https://nc-news-backend-b1yp.onrender.com>_  
 🔗 **API Documentation:** `/docs`
 
 ---
